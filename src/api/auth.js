@@ -5,7 +5,7 @@ const login = (username, password) => {
         {
             method: 'post',
             body: JSON.stringify({
-                username: 
+                username: "vas@ss.eu"
             })
         })
         .then(res => res.json())

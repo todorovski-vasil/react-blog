@@ -22,7 +22,7 @@ function Posts(props) {
             title={post.title}
             body={post.body}
             loadPost={() => {
-                props.history.push('post');
+                props.history.push('post/' + post.id);
                 props.loadPost(post.id);
             }}
         />);

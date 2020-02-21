@@ -1,12 +1,12 @@
 const initialState = {
     posts: [],
-    postsLoading: true,
+    postsLoading: false,
     error: {
         code: 200,
         message: ''
     },
     post: {},
-    postLoading: true
+    postLoading: false
 };
 
 const POSTS_LOADING = 'POSTS_LOADING';
