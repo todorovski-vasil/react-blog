@@ -1,0 +1,53 @@
+import React, { useEffect } from 'react';
+import PostPreview from './PostPreview';
+import { connect } from 'react-redux';
+import { loadPosts, loadPost } from '../../reducers/blog';
+import { withRouter } from 'react-router-dom';
+
+function Posts(props) {
+    useEffect(() => {
+        props.loadPosts();
+    }, []);
+
+    let posts = null;
+    
+    if(props.error.code !== 200) {
+        posts = <h2>{props.error.code + ": " + props.error.message}</h2>;
+    } else if(props.loading) {
+        posts = <h2>Loading posts...</h2>;
+    } else {
+        posts = props.posts.map(post => <PostPreview 
+            key={post.id}
+            id={post.id}
+            title={post.title}
+            body={post.body}
+            loadPost={() => {
+                props.history.push('post');
+                props.loadPost(post.id);
+            }}
+        />);
+    }
+
+    return (
+        <>
+            {posts}  
+        </>
+    );
+}
+
+const mapStateToProps = (state) => {
+    return {
+        loading: state.postsLoading,
+        posts: state.posts,
+        error: state.error
+    }
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        loadPosts: () => dispatch(loadPosts()),
+        loadPost: (id) => dispatch(loadPost(id))
+    }
+};
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Posts));

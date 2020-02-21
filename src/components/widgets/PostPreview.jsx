@@ -1,10 +1,11 @@
 import React from 'react';
-import { connect } from 'react-dexux';
-import { loadPosts } from '../../reducers/blog';
 
 function PostPreview(props) {
     return (
-        <div>
+        <div onClick={() => {
+                console.log(props.id);
+                props.loadPost(props.id);
+            }}>
             <h3>{props.title}</h3>
             <p>{props.body}</p>
             {/* <h6>Writen by {props.userId}</h6> */}
@@ -12,18 +13,4 @@ function PostPreview(props) {
     );
 }
 
-const mapStateToProps = (state) => {
-    return {
-        loading: state.blogReducer.loading,
-        posts: state.blogReducer.posts,
-        error: state.blogReducer.error
-    }
-};
-
-const mapDispatchToProps = (dispatch) => {
-    return {
-        loadPosts: () => dispatch(loadPosts())
-    }
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(PostPreview);
+export default PostPreview;
