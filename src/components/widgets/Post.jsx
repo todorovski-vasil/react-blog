@@ -14,14 +14,18 @@ function Post(props) {
 
     let post = null;
     if(props.error.code !== 200) {
-        post = <h2>{props.error.code + ": " + props.error.message}</h2>;
+        if(props.error.cod > 0) {
+            post = <h2>{props.error.code + ": " + props.error.message}</h2>;
+        } else {
+            post = <h2>{props.error.message}</h2>;
+        }
     } else if(props.loading) {
         post = <h2>Loading post...</h2>;
     } else {
         post = <>
             <h3>{props.post.title}</h3>
             <p>{props.post.body}</p>
-            <h6>Writen by {props.post.userId}</h6>
+            <h6>Writen by {props.post.name}</h6>
         </>;
     }
 

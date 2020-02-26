@@ -83,7 +83,7 @@ const postsSuccess = (data) => ({
 
 const postsError = (err) => ({
     type: POSTS_ERROR,
-    errorCode: err.code,
+    errorCode: err.code ? err.code : "-100",
     message: err.message
 });
 
@@ -126,26 +126,72 @@ const loadPosts = () => {
     }
 }
 
-const loadPost = (id) => {
+const loadPost = (post) => {
     return function(dispatch) {
         dispatch(postLoading());
 
-        fetch('https://jsonplaceholder.typicode.com/posts/' + id)
-            .then(res => {
-                if(res.ok) {
-                    return res.json();
-                } else {
-                    throw(res);
-                }
+        const postsURL = 'https://jsonplaceholder.typicode.com/posts/';
+        const usersURL = 'https://jsonplaceholder.typicode.com/users/';
+
+        let postReceived = false;
+        let userReceived = false;
+        let tempData = null;
+
+        const handleError = err => {
+            console.error(err);
+            dispatch(postsError({ code: err.status, message: err.message }));
+        }
+
+        Promise.all([
+            fetch(postsURL + post.id), 
+            fetch(usersURL + post.userId)
+        ])
+            .then(responses => {
+                return responses.map(res => {
+                    if(res.ok) {
+                        if(res.url.indexOf(postsURL) !== -1) {
+                            res.json()
+                                .then(data => {
+                                    if(userReceived) {
+                                        dispatch(postSuccess({
+                                            ...data,
+                                            name: tempData.name
+                                        }));
+                                    } else {
+                                        postReceived = true;
+                                        tempData = {...data};
+                                    }
+                                })
+                                .catch(handleError);
+                        } else if(res.url.indexOf(usersURL) !== -1) {
+                            // res.json().then(data => {
+                            //     return {
+                            //         request: 'users',
+                            //         data: data
+                            //     };
+                            // });
+                            res.json()
+                                .then(data => {
+                                    if(postReceived) {
+                                        dispatch(postSuccess({
+                                            ...tempData,
+                                            name: data.name
+                                        }));
+                                    } else {
+                                        userReceived = true;
+                                        tempData = {...data};
+                                    }
+                                })
+                                .catch(handleError);
+                        } else {
+                            throw new Error("Unknown responce from: " + res.url);
+                        }
+                    } else {
+                        throw new Error("status: " + res.status + " on " + res.url);
+                    }
+                })
             })
-            .then(data => {
-                console.table(data);
-                dispatch(postSuccess(data));
-            })
-            .catch(err => {
-                console.error(err);
-                dispatch(postError({ code: err.status, message: err.statusText }));
-            });
+            .catch(handleError);
     }
 }
 

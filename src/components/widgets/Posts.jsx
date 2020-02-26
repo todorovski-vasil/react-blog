@@ -23,7 +23,7 @@ function Posts(props) {
             body={post.body}
             loadPost={() => {
                 props.history.push('post/' + post.id);
-                props.loadPost(post.id);
+                props.loadPost({ id: post.id, userId: post.userId });
             }}
         />);
     }
@@ -46,7 +46,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         loadPosts: () => dispatch(loadPosts()),
-        loadPost: (id) => dispatch(loadPost(id))
+        loadPost: (data) => dispatch(loadPost(data))
     }
 };
 
