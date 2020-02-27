@@ -10,11 +10,10 @@ import Post from './components/widgets/Post';
 function App() {
     return (
         <>
-            <Header label="Header">
-            </Header>
+            <Header label='Header'></Header>
             <Switch>
-                <Route exact path="/" component={Posts}/>
-                <Route path="/post/:id" component={Post}/>
+                <Route exact path='/' component={Posts} />
+                <Route path='/post/:id' component={Post} />
             </Switch>
             <h2>Footer</h2>
         </>

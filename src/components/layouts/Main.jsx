@@ -4,7 +4,7 @@ import Header from '../widgets/Header';
 import Posts from '../widgets/Posts';
 
 function Main(props) {
-    return <Posts/>;
+    return <Posts />;
 }
 
 export default Main;

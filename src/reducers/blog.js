@@ -1,4 +1,4 @@
-import { fetchPost, fetchUser } from '../api/typicode';
+import { fetchPost, fetchPostData } from '../api/typicode';
 
 const initialState = {
     posts: [],
@@ -21,19 +21,19 @@ const POST_ERROR = 'POST_ERROR';
 
 // reducer
 const blogReducer = (state = initialState, action) => {
-    switch(action.type) {
+    switch (action.type) {
         case POSTS_LOADING:
             return {
                 posts: [...state.posts],
                 postsLoading: true,
                 error: { code: 200 }
-            }
+            };
         case POSTS_SUCCESS:
             return {
                 posts: action.data,
                 postsLoading: false,
                 error: { code: 200 }
-            }
+            };
         case POSTS_ERROR:
             return {
                 postsLoading: false,
@@ -41,25 +41,28 @@ const blogReducer = (state = initialState, action) => {
                     code: action.errorCode,
                     message: action.message
                 }
-            }
+            };
         case POST_LOADING:
             return {
                 ...state,
                 posts: [...state.posts],
-                post: {...state.post},
+                post: { ...state.post },
                 postLoading: true,
                 error: { code: 200 }
-            }
+            };
         case POST_SUCCESS:
-            let post = action.post ? action.post : {...state.posts[action.postId]};
+            let post = action.post
+                ? action.post
+                : { ...state.posts.find(post => post.id === action.postId) };
             post.userName = action.user.name;
             return {
                 ...state,
                 posts: [...state.posts],
                 post: post,
+                comments: action.comments,
                 postLoading: false,
                 error: { code: 200 }
-            }
+            };
         case POST_ERROR:
             return {
                 ...state,
@@ -69,25 +72,25 @@ const blogReducer = (state = initialState, action) => {
                     code: action.errorCode,
                     message: action.message
                 }
-            }
+            };
         default:
             return state;
     }
-}
+};
 
 // action creators
 const postsLoading = () => ({
     type: POSTS_LOADING
 });
 
-const postsSuccess = (data) => ({
+const postsSuccess = data => ({
     type: POSTS_SUCCESS,
     data: data
 });
 
-const postsError = (err) => ({
+const postsError = err => ({
     type: POSTS_ERROR,
-    errorCode: err.code ? err.code : "-100",
+    errorCode: err.code ? err.code : '-100',
     message: err.message
 });
 
@@ -95,14 +98,15 @@ const postLoading = () => ({
     type: POST_LOADING
 });
 
-const postSuccess = (data) => ({
+const postSuccess = data => ({
     type: POST_SUCCESS,
     post: data.post,
     postId: data.postId,
-    user: data.user
+    user: data.user,
+    comments: data.comments
 });
 
-const postError = (err) => ({
+const postError = err => ({
     type: POST_ERROR,
     errorCode: err.code,
     message: err.message
@@ -110,15 +114,15 @@ const postError = (err) => ({
 
 // thunk midleware
 const loadPosts = () => {
-    return (dispatch) => {
+    return dispatch => {
         dispatch(postsLoading());
 
         fetch('https://jsonplaceholder.typicode.com/posts')
             .then(res => {
-                if(res.ok) {
+                if (res.ok) {
                     return res.json();
                 } else {
-                    throw(res);
+                    throw res;
                 }
             })
             .then(data => {
@@ -127,49 +131,54 @@ const loadPosts = () => {
             })
             .catch(err => {
                 console.error(err);
-                dispatch(postsError({ code: err.status, message: err.statusText }));
+                dispatch(
+                    postsError({ code: err.status, message: err.statusText })
+                );
             });
-    }
-}
+    };
+};
 
-const loadPost = (postInfo) => {
+const loadPost = postInfo => {
     return function(dispatch) {
         dispatch(postLoading());
 
         const handleError = err => {
             console.error(err);
-            dispatch(postsError({ code: err.status, message: err.message }));
-        }
+            dispatch(postError({ code: err.status, message: err.message }));
+        };
 
         const payload = {
             postId: postInfo.id
         };
 
         (() => {
-            if(postInfo.userId) {
-                return new Promise(resolve => resolve({ userId: postInfo.userId }));
+            if (postInfo.userId) {
+                return new Promise(resolve =>
+                    resolve({ userId: postInfo.userId })
+                );
             } else {
-                return fetchPost(postInfo.id);
+                return fetchPost(payload.postId);
             }
         })()
             .then(data => {
                 console.table(data);
-                if(data.id) {
-                    payload.post = {...data};
+                if (data.id) {
+                    payload.post = { ...data };
                 }
-                return fetchUser(data.userId);
+                return fetchPostData(payload.postId, data.userId);
+            })
+            .then(data => {
+                console.table(data[0]);
+                payload.user = data[0];
+                return data[1];
             })
             .then(data => {
                 console.table(data);
-                payload.user = data;
+                payload.comments = data;
                 dispatch(postSuccess(payload));
             })
             .catch(handleError);
-    }
-}
-
-export {
-    blogReducer,
-    loadPosts,
-    loadPost
+    };
 };
+
+export { blogReducer, loadPosts, loadPost };
