@@ -1,3 +1,5 @@
+import { fetchPost, fetchUser } from '../api/typicode';
+
 const initialState = {
     posts: [],
     postsLoading: false,
@@ -49,10 +51,12 @@ const blogReducer = (state = initialState, action) => {
                 error: { code: 200 }
             }
         case POST_SUCCESS:
+            let post = action.post ? action.post : {...state.posts[action.postId]};
+            post.userName = action.user.name;
             return {
                 ...state,
                 posts: [...state.posts],
-                post: action.data,
+                post: post,
                 postLoading: false,
                 error: { code: 200 }
             }
@@ -93,7 +97,9 @@ const postLoading = () => ({
 
 const postSuccess = (data) => ({
     type: POST_SUCCESS,
-    data: data
+    post: data.post,
+    postId: data.postId,
+    user: data.user
 });
 
 const postError = (err) => ({
@@ -126,70 +132,37 @@ const loadPosts = () => {
     }
 }
 
-const loadPost = (post) => {
+const loadPost = (postInfo) => {
     return function(dispatch) {
         dispatch(postLoading());
-
-        const postsURL = 'https://jsonplaceholder.typicode.com/posts/';
-        const usersURL = 'https://jsonplaceholder.typicode.com/users/';
-
-        let postReceived = false;
-        let userReceived = false;
-        let tempData = null;
 
         const handleError = err => {
             console.error(err);
             dispatch(postsError({ code: err.status, message: err.message }));
         }
 
-        Promise.all([
-            fetch(postsURL + post.id), 
-            fetch(usersURL + post.userId)
-        ])
-            .then(responses => {
-                return responses.map(res => {
-                    if(res.ok) {
-                        if(res.url.indexOf(postsURL) !== -1) {
-                            res.json()
-                                .then(data => {
-                                    if(userReceived) {
-                                        dispatch(postSuccess({
-                                            ...data,
-                                            name: tempData.name
-                                        }));
-                                    } else {
-                                        postReceived = true;
-                                        tempData = {...data};
-                                    }
-                                })
-                                .catch(handleError);
-                        } else if(res.url.indexOf(usersURL) !== -1) {
-                            // res.json().then(data => {
-                            //     return {
-                            //         request: 'users',
-                            //         data: data
-                            //     };
-                            // });
-                            res.json()
-                                .then(data => {
-                                    if(postReceived) {
-                                        dispatch(postSuccess({
-                                            ...tempData,
-                                            name: data.name
-                                        }));
-                                    } else {
-                                        userReceived = true;
-                                        tempData = {...data};
-                                    }
-                                })
-                                .catch(handleError);
-                        } else {
-                            throw new Error("Unknown responce from: " + res.url);
-                        }
-                    } else {
-                        throw new Error("status: " + res.status + " on " + res.url);
-                    }
-                })
+        const payload = {
+            postId: postInfo.id
+        };
+
+        (() => {
+            if(postInfo.userId) {
+                return new Promise(resolve => resolve({ userId: postInfo.userId }));
+            } else {
+                return fetchPost(postInfo.id);
+            }
+        })()
+            .then(data => {
+                console.table(data);
+                if(data.id) {
+                    payload.post = {...data};
+                }
+                return fetchUser(data.userId);
+            })
+            .then(data => {
+                console.table(data);
+                payload.user = data;
+                dispatch(postSuccess(payload));
             })
             .catch(handleError);
     }

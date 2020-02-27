@@ -8,7 +8,7 @@ function Post(props) {
 
     useEffect(() => {
         if(!props.loading && !Object.keys(props.post).length) {
-            props.loadPost(id);
+            props.loadPost({ id: id });
         }
     }, []);
 
@@ -25,7 +25,7 @@ function Post(props) {
         post = <>
             <h3>{props.post.title}</h3>
             <p>{props.post.body}</p>
-            <h6>Writen by {props.post.name}</h6>
+            <h6>Writen by {props.post.userName}</h6>
         </>;
     }
 
@@ -46,7 +46,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        loadPost: (id) => dispatch(loadPost(id))
+        loadPost: postInfo => dispatch(loadPost(postInfo))
     }
 }
 
