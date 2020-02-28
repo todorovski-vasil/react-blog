@@ -6,7 +6,7 @@ function fetchURL(url) {
             return res.json();
         } else {
             throw new Error(
-                'Status: ' + res.status + ', on fetching from' + url
+                'Status: ' + res.status + ', on fetching from ' + url
             );
         }
     });
@@ -24,8 +24,4 @@ function fetchCommentsForPost(id) {
     return fetchURL(API_BASE + '/comments?postId=' + id);
 }
 
-function fetchPostData(postId, userId) {
-    return Promise.all([fetchUser(userId), fetchCommentsForPost(postId)]);
-}
-
-export { fetchPost, fetchPostData };
+export { fetchPost, fetchUser, fetchCommentsForPost };

@@ -1,4 +1,4 @@
-import { fetchPost, fetchPostData } from '../api/typicode';
+import { fetchPost, fetchUser, fetchCommentsForPost } from '../api/typicode';
 
 const initialState = {
     posts: [],
@@ -126,7 +126,6 @@ const loadPosts = () => {
                 }
             })
             .then(data => {
-                console.table(data);
                 dispatch(postsSuccess(data));
             })
             .catch(err => {
@@ -141,11 +140,6 @@ const loadPosts = () => {
 const loadPost = postInfo => {
     return function(dispatch) {
         dispatch(postLoading());
-
-        const handleError = err => {
-            console.error(err);
-            dispatch(postError({ code: err.status, message: err.message }));
-        };
 
         const payload = {
             postId: postInfo.id
@@ -165,19 +159,21 @@ const loadPost = postInfo => {
                 if (data.id) {
                     payload.post = { ...data };
                 }
-                return fetchPostData(payload.postId, data.userId);
+                return Promise.all([
+                    fetchUser(data.userId),
+                    fetchCommentsForPost(payload.postId)
+                ]);
             })
             .then(data => {
-                console.table(data[0]);
-                payload.user = data[0];
-                return data[1];
-            })
-            .then(data => {
-                console.table(data);
-                payload.comments = data;
+                const [user, comments] = data;
+                payload.user = user;
+                payload.comments = comments;
                 dispatch(postSuccess(payload));
             })
-            .catch(handleError);
+            .catch(err => {
+                console.error(err);
+                dispatch(postError({ code: err.status, message: err.message }));
+            });
     };
 };
 
