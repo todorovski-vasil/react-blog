@@ -155,7 +155,6 @@ const loadPost = postInfo => {
             }
         })()
             .then(data => {
-                console.table(data);
                 if (data.id) {
                     payload.post = { ...data };
                 }

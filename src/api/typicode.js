@@ -12,16 +12,16 @@ function fetchURL(url) {
     });
 }
 
-function fetchPost(id) {
-    return fetchURL(API_BASE + '/posts/' + id);
+function fetchPost(id = '', _fetchURL = fetchURL) {
+    return _fetchURL(API_BASE + '/posts/' + id);
 }
 
-function fetchUser(id) {
-    return fetchURL(API_BASE + '/users/' + id);
+function fetchUser(id = '', _fetchURL = fetchURL) {
+    return _fetchURL(API_BASE + '/users/' + id);
 }
 
-function fetchCommentsForPost(id) {
-    return fetchURL(API_BASE + '/comments?postId=' + id);
+function fetchCommentsForPost(id = '', _fetchURL = fetchURL) {
+    return _fetchURL(API_BASE + '/comments?postId=' + id);
 }
 
-export { fetchPost, fetchUser, fetchCommentsForPost };
+export { fetchPost, fetchUser, fetchCommentsForPost, fetchURL };
